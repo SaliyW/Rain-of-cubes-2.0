@@ -2,24 +2,24 @@ using TMPro;
 using UnityEngine;
 
 [RequireComponent(typeof(TextMeshProUGUI))]
-public abstract class SpawnerDisplay<T> : MonoBehaviour where T : SpawnObject
+public class DisplaySpawner<T> : MonoBehaviour where T : SpawnObject<T>
 {
     [SerializeField] protected Spawner<T> _spawner;
 
     protected TextMeshProUGUI _textMeshPro;
 
-    protected void Awake()
+    protected virtual void Awake()
     {
         _textMeshPro = GetComponent<TextMeshProUGUI>();
         UpdateInfo();
     }
 
-    private void OnEnable()
+    protected virtual void OnEnable()
     {
         _spawner.ChangedCount += UpdateInfo;
     }
 
-    private void OnDisable()
+    protected virtual void OnDisable()
     {
         _spawner.ChangedCount -= UpdateInfo;
     }

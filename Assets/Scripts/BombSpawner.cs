@@ -18,7 +18,7 @@ public class BombSpawner : Spawner<Bomb>
 
     private void SubscribeToEvent(Cube cube)
     {
-        cube.Destroyed += GetBomb;
+        cube.ReadyToRelease += GetBomb;
     }
 
     private void GetBomb(Cube cube)
@@ -27,7 +27,7 @@ public class BombSpawner : Spawner<Bomb>
 
         GetObject();
 
-        cube.Destroyed -= GetBomb;
+        cube.ReadyToRelease -= GetBomb;
     }
 
     protected override void ActionOnGet(Bomb bomb)
@@ -35,6 +35,13 @@ public class BombSpawner : Spawner<Bomb>
         base.ActionOnGet(bomb);
 
         bomb.transform.position = _bombPosition;
-        bomb.GetComponent<Rigidbody>().velocity = Vector3.zero;
+        bomb.ReadyToRelease += _pool.Release;
+    }
+
+    protected override void ActionOnRelease(Bomb bomb)
+    {
+        base.ActionOnRelease(bomb);
+
+        bomb.ReadyToRelease -= _pool.Release;
     }
 }

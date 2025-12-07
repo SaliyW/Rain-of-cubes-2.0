@@ -1,38 +1,25 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.Events;
 
 [RequireComponent(typeof(Rigidbody))]
-public class Cube : SpawnObject
+public class Cube : SpawnObject<Cube>
 {
-    public UnityAction<Cube> Destroyed;
-    private Coroutine _coroutine;
-
     private void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.GetComponent<Platform>())
         {
-            _coroutine = StartCoroutine(Destruction());
+            _coroutine = StartCoroutine(LifeCounter());
         }
     }
 
-    private IEnumerator Destruction()
+    private IEnumerator LifeCounter()
     {
-        float minTimeOfDestroy = 2;
-        float maxTimeOfDestroy = 5;
-        float elapsedTime = 0;
-        float destructionTime = Random.Range(minTimeOfDestroy, maxTimeOfDestroy);
+        float lifeTime = Random.Range(_minRandomTime, _maxRandomTime);
 
-        GetComponent<Renderer>().material.color = Color.red;
+        _renderer.material.color = Color.red;
 
-        while (elapsedTime < destructionTime)
-        {
-            elapsedTime += Time.deltaTime;
+        yield return new WaitForSecondsRealtime(lifeTime);
 
-            yield return null;
-        }
-
-        Destroy(gameObject);
-        Destroyed?.Invoke(this);
+        ReadyToRelease?.Invoke(this);
     }
 }

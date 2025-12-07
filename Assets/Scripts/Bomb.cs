@@ -1,41 +1,32 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
 
 [RequireComponent(typeof(Rigidbody))]
-public class Bomb : SpawnObject
+public class Bomb : SpawnObject<Bomb>
 {
     [SerializeField] private float _explosionForce;
     [SerializeField] private float _explosionRadius;
 
-    public UnityAction Exploded;
-    private Renderer _renderer;
-    private Coroutine _coroutine;
-
-    private void Awake()
-    {
-        _renderer = GetComponent<Renderer>();
-    }
-
-    private void Start()
+    private void OnEnable()
     {
         _coroutine = StartCoroutine(Dissolve());
     }
 
     private IEnumerator Dissolve()
     {
-        float dissolutionTime = SetDissolutionTime();
+        float dissolutionTime;
         float elapsedTime = 0;
         float targetAlpha = 0;
-        Color startColor = _renderer.material.color;
-        Color endColor = new(startColor.r, startColor.g, startColor.b, targetAlpha);
+        Color endColor = new(_awakeColor.r, _awakeColor.g, _awakeColor.b, targetAlpha);
+
+        dissolutionTime = Random.Range(_minRandomTime, _maxRandomTime);
 
         while (elapsedTime < dissolutionTime)
         {
             elapsedTime += Time.deltaTime;
             float interpolationParameter = elapsedTime / dissolutionTime;
-            _renderer.material.color = Color.Lerp(startColor, endColor, interpolationParameter);
+            _renderer.material.color = Color.Lerp(_awakeColor, endColor, interpolationParameter);
 
             yield return null;
         }
@@ -65,15 +56,6 @@ public class Bomb : SpawnObject
             explodableCube.AddExplosionForce(_explosionForce / scale, transform.position, _explosionRadius / scale, upwardsModifier);
         }
 
-        Destroy(gameObject);
-        Exploded?.Invoke();
-    }
-
-    private float SetDissolutionTime()
-    {
-        float minTimeOfDissolution = 2;
-        float maxTimeOfDissolution = 5;
-
-        return Random.Range(minTimeOfDissolution, maxTimeOfDissolution);
+        ReadyToRelease?.Invoke(this);
     }
 }
